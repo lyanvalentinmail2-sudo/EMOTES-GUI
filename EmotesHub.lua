@@ -25,7 +25,7 @@ local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
 
--- Determinar el contenedor adecuado (CoreGui para executors, PlayerGui para Studio)
+-- Determinar el contenedor adecuado (CoreGui para executors como Delta, PlayerGui para Studio)
 local targetParent
 local successCore = pcall(function()
     local test = Instance.new("Folder")
@@ -44,6 +44,18 @@ local existingGui = targetParent:FindFirstChild("FE_EmotesHub_ScreenGui")
 if existingGui then
     existingGui:Destroy()
 end
+
+local camera = workspace.CurrentCamera
+local isTouchDevice = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+
+-- Notificación al cargar en Delta
+pcall(function()
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "🎭 FE Emotes Hub";
+        Text = "¡Cargado con éxito en Delta! Toca el botón flotante para abrir/cerrar.";
+        Duration = 4;
+    })
+end)
 
 -- ===================================================================
 -- PALETAS DE COLORES (8 TEMAS)
@@ -241,12 +253,21 @@ ToggleStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 ToggleStroke.Parent = ToggleButton
 
 -- ===================================================================
--- CONTENEDOR PRINCIPAL: HUB GRANDE
+-- CONTENEDOR PRINCIPAL: HUB GRANDE (ADAPTATIVO PARA DELTA MÓVIL Y PC)
 -- ===================================================================
+local function getResponsiveHubDimensions()
+    local vp = (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize) or Vector2.new(1024, 768)
+    local hubW = math.clamp(vp.X - 30, 340, 840)
+    local hubH = math.clamp(vp.Y - 30, 300, 560)
+    return hubW, hubH
+end
+
+local initW, initH = getResponsiveHubDimensions()
+
 local MainHub = Instance.new("Frame")
 MainHub.Name = "MainHub"
-MainHub.Size = UDim2.new(0, 840, 0, 560)
-MainHub.Position = UDim2.new(0.5, -420, 0.5, -280)
+MainHub.Size = UDim2.new(0, initW, 0, initH)
+MainHub.Position = UDim2.new(0.5, -math.floor(initW / 2), 0.5, -math.floor(initH / 2))
 MainHub.BackgroundColor3 = THEMES[currentThemeIndex].background
 MainHub.BorderSizePixel = 0
 MainHub.ClipsDescendants = true
@@ -466,14 +487,35 @@ ScrollArea.AutomaticCanvasSize = Enum.AutomaticSize.Y
 ScrollArea.Parent = MainHub
 
 -- UIGridLayout: configurado con exactitud para 8 botones por fila
--- Ancho total disponible aprox = 800px.
--- 8 columnas * 92px + 7 espacios * 8px = 736 + 56 = 792px (¡8 exactos por fila!)
+-- Calcula automáticamente el tamaño para que SIEMPRE quepan 8 exactos por fila
+local function calculateCellDimensions()
+    local currentHubW = MainHub.AbsoluteSize.X > 0 and MainHub.AbsoluteSize.X or initW
+    local scrollW = math.max(280, currentHubW - 40)
+    local padding = 6
+    local cellWidth = math.max(34, math.floor((scrollW - (7 * padding) - 12) / 8))
+    local cellHeight = math.floor(cellWidth * 0.95)
+    return cellWidth, cellHeight, padding
+end
+
+local cellW, cellH, pad = calculateCellDimensions()
+
 local GridLayout = Instance.new("UIGridLayout")
 GridLayout.Name = "GridLayout"
-GridLayout.CellSize = UDim2.new(0, 92, 0, 88)
-GridLayout.CellPadding = UDim2.new(0, 8, 0, 8)
+GridLayout.CellSize = UDim2.new(0, cellW, 0, cellH)
+GridLayout.CellPadding = UDim2.new(0, pad, 0, pad)
 GridLayout.SortOrder = Enum.SortOrder.LayoutOrder
 GridLayout.Parent = ScrollArea
+
+-- Ajustar si la pantalla cambia de orientación (Delta móvil horizontal/vertical)
+if camera then
+    camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+        local newW, newH = getResponsiveHubDimensions()
+        MainHub.Size = UDim2.new(0, newW, 0, newH)
+        local cW, cH, p = calculateCellDimensions()
+        GridLayout.CellSize = UDim2.new(0, cW, 0, cH)
+        GridLayout.CellPadding = UDim2.new(0, p, 0, p)
+    end)
+end
 
 local EmptyNotice = Instance.new("TextLabel")
 EmptyNotice.Name = "EmptyNotice"
@@ -577,7 +619,7 @@ LocalPlayer.CharacterAdded:Connect(function()
     stopEmote()
 end)
 
-StopButton.MouseButton1Click:Connect(function()
+StopButton.Activated:Connect(function()
     stopEmote()
 end)
 
@@ -681,13 +723,13 @@ local function refreshEmotesGrid()
                 end
             end)
 
-            -- Al tocar el emote se EQUIPA
-            Card.MouseButton1Click:Connect(function()
+            -- Al tocar el emote se EQUIPA (funciona en PC y en Delta móvil)
+            Card.Activated:Connect(function()
                 equipEmote(emote)
             end)
 
             -- Al tocar la estrellita se añade/quita de FAVORITOS
-            StarButton.MouseButton1Click:Connect(function()
+            StarButton.Activated:Connect(function()
                 if favorites[emote.id] then
                     favorites[emote.id] = nil
                     StarButton.Text = "☆"
@@ -764,7 +806,7 @@ local function applyTheme(themeIndex)
     refreshEmotesGrid()
 end
 
-ColorThemeButton.MouseButton1Click:Connect(function()
+ColorThemeButton.Activated:Connect(function()
     local nextIndex = (currentThemeIndex % #THEMES) + 1
     applyTheme(nextIndex)
 end)
@@ -772,7 +814,7 @@ end)
 -- ===================================================================
 -- CONTROL DE PESTAÑAS (TODOS / FAVORITOS)
 -- ===================================================================
-TabTodos.MouseButton1Click:Connect(function()
+TabTodos.Activated:Connect(function()
     currentTab = "todos"
     TabTodos.BackgroundColor3 = THEMES[currentThemeIndex].primary
     TabTodos.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -781,7 +823,7 @@ TabTodos.MouseButton1Click:Connect(function()
     refreshEmotesGrid()
 end)
 
-TabFavs.MouseButton1Click:Connect(function()
+TabFavs.Activated:Connect(function()
     currentTab = "favoritos"
     TabFavs.BackgroundColor3 = THEMES[currentThemeIndex].primary
     TabFavs.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -803,16 +845,20 @@ local isHubOpen = true
 
 local function toggleHub()
     isHubOpen = not isHubOpen
+    local curW, curH = getResponsiveHubDimensions()
+    local halfW = math.floor(curW / 2)
+    local halfH = math.floor(curH / 2)
+
     if isHubOpen then
         MainHub.Visible = true
-        MainHub.Position = UDim2.new(0.5, -420, 0.5, -250)
+        MainHub.Position = UDim2.new(0.5, -halfW, 0.5, -halfH + 30)
         TweenService:Create(MainHub, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0.5, -420, 0.5, -280)
+            Position = UDim2.new(0.5, -halfW, 0.5, -halfH)
         }):Play()
         ToggleButton.Text = "🎭 Cerrar Hub [K]"
     else
         local tween = TweenService:Create(MainHub, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-            Position = UDim2.new(0.5, -420, 0.5, -250)
+            Position = UDim2.new(0.5, -halfW, 0.5, -halfH + 30)
         })
         tween:Play()
         tween.Completed:Connect(function()
@@ -824,8 +870,8 @@ local function toggleHub()
     end
 end
 
-ToggleButton.MouseButton1Click:Connect(toggleHub)
-CloseButton.MouseButton1Click:Connect(toggleHub)
+ToggleButton.Activated:Connect(toggleHub)
+CloseButton.Activated:Connect(toggleHub)
 
 -- Atajo de teclado: Tecla 'K' para abrir/cerrar
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
