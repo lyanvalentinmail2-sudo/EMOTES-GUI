@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roblox FE Emotes Hub</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="violet">
+
+  <!-- FONDO CON EFECTO DE PARTÍCULAS / MALLA DE ESTRELLAS -->
+  <div class="bg-effects">
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <!-- BARRA SUPERIOR DE INFORMACIÓN -->
+  <header class="top-nav">
+    <div class="nav-left">
+      <div class="logo-badge">
+        <span class="logo-icon">🎭</span>
+        <div class="logo-text">
+          <span class="title">EMOTES HUB</span>
+          <span class="subtitle">FE • FILTERING ENABLED</span>
+        </div>
+      </div>
+      <div class="hub-status-pill">
+        <span class="status-dot"></span>
+        <span id="nav-equipped-text">Ningún emote equipado</span>
+      </div>
+    </div>
+
+    <div class="nav-right">
+      <button id="btn-stop-nav" class="nav-btn btn-danger" title="Desequipar o detener el emote actual">
+        <span>⏹️</span> Desequipar
+      </button>
+      <button id="btn-toggle-sound" class="nav-btn btn-ghost" title="Activar/Desactivar efectos de sonido">
+        <span id="sound-icon">🔊</span>
+      </button>
+      <button id="btn-open-script" class="nav-btn btn-accent" title="Ver y copiar el script Lua para Roblox">
+        <span>📜</span> Script Roblox (FE)
+      </button>
+    </div>
+  </header>
+
+  <!-- BOTÓN FLOTANTE PARA ABRIR / CERRAR EL HUB -->
+  <aside class="floating-controls">
+    <button id="floating-toggle-hub" class="floating-toggle-btn" title="Presiona [K] o haz clic para abrir/cerrar el hub">
+      <div class="toggle-icon-wrap">
+        <span id="toggle-hub-icon">🎭</span>
+      </div>
+      <div class="toggle-text-wrap">
+        <span id="toggle-hub-label">Cerrar Hub</span>
+        <span class="hotkey-badge">Tecla K</span>
+      </div>
+      <span id="floating-fav-count" class="floating-fav-badge" title="Emotes en favoritos">2 ⭐</span>
+    </button>
+  </aside>
+
+  <!-- CONTENEDOR PRINCIPAL: HUB GRANDE -->
+  <main class="hub-overlay" id="hub-overlay">
+    <section class="hub-window large-hub" id="hub-window">
+      
+      <!-- HEADER DEL HUB -->
+      <div class="hub-header" id="hub-header">
+        <div class="hub-header-left">
+          <div class="hub-title-container">
+            <span class="hub-main-icon">🎭</span>
+            <div>
+              <h1 class="hub-title">HUB DE EMOTES <span class="fe-pill">FE</span></h1>
+              <p class="hub-subtitle">Roblox R15 & R6 • 8 por fila • Equipar con 1 clic</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="hub-header-center">
+          <!-- BOTÓN PARA CAMBIAR DE COLOR -->
+          <div class="color-changer-group">
+            <button id="btn-change-color" class="btn-color-theme" title="Haz clic para alternar el color del Hub">
+              <span class="theme-color-bullet" id="theme-color-bullet"></span>
+              <span id="theme-name-display">🎨 Color: Neón Violeta</span>
+            </button>
+            <div class="color-palette-dots" id="color-palette-dots" title="Elige un color directamente">
+              <!-- Renderizado dinámicamente -->
+            </div>
+          </div>
+        </div>
+
+        <div class="hub-header-right">
+          <button id="btn-minimize-hub" class="header-action-btn" title="Cerrar ventana">✕</button>
+        </div>
+      </div>
+
+      <!-- SECCIÓN SUPERIOR: AVATAR PREVIEW + STATUS EQUIPADO -->
+      <div class="hub-equip-banner" id="hub-equip-banner">
+        <div class="avatar-preview-box">
+          <canvas id="avatar-canvas" width="130" height="130"></canvas>
+          <div class="avatar-status-pill">
+            <span class="pulse-indicator" id="pulse-indicator"></span>
+            <span id="avatar-action-text">En espera</span>
+          </div>
+        </div>
+
+        <div class="equip-info-box">
+          <div class="equip-label-small">EMOTE ACTUALMENTE EQUIPADO (FE):</div>
+          <div class="equip-name-big" id="current-emote-title">Ningún emote seleccionado</div>
+          <div class="equip-meta" id="current-emote-meta">
+            <span>ID: <code id="current-emote-id">---</code></span>
+            <span>Tipo: <span id="current-emote-type">Bucle FE</span></span>
+            <span>Visibilidad: <span class="badge-fe">Todos los jugadores lo ven</span></span>
+          </div>
+        </div>
+
+        <div class="equip-actions">
+          <button id="btn-equip-stop" class="btn-stop-action">
+            <span>⏹️</span> Desequipar
+          </button>
+        </div>
+      </div>
+
+      <!-- BARRA DE HERRAMIENTAS: BÚSQUEDA Y PESTAÑAS -->
+      <div class="hub-toolbar">
+        <div class="tabs-group">
+          <button class="tab-btn active" id="tab-todos" data-tab="todos">
+            <span>📁</span> Todos los Emotes <span class="tab-badge" id="badge-total-count">64</span>
+          </button>
+          <button class="tab-btn" id="tab-favoritos" data-tab="favoritos">
+            <span>⭐</span> Favoritos <span class="tab-badge fav-badge" id="badge-fav-count">2</span>
+          </button>
+        </div>
+
+        <div class="search-group">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" placeholder="Buscar emote (Floss, Dance, Robot...)" autocomplete="off">
+          <button id="btn-clear-search" class="btn-clear-search" style="display:none;" title="Limpiar búsqueda">✕</button>
+        </div>
+      </div>
+
+      <!-- CONTENIDO DEL HUB: GRID DE EMOTES (8 POR FILA) -->
+      <div class="hub-body" id="hub-body">
+        
+        <!-- GRID DE 8 POR FILA -->
+        <div class="emotes-grid grid-8-cols" id="emotes-grid">
+          <!-- Renderizado dinámicamente: 8 emotes pequeños por fila -->
+        </div>
+
+        <!-- MENSAJE DE ESTADO VACÍO (FAVORITOS O BÚSQUEDA) -->
+        <div class="empty-state" id="empty-state" style="display: none;">
+          <div class="empty-icon">⭐</div>
+          <h3 id="empty-title">No hay favoritos todavía</h3>
+          <p id="empty-desc">Haz clic en la estrellita (⭐) de cualquier emote pequeño para agregarlo a esta sección.</p>
+          <button class="btn-accent" id="btn-empty-goto-all">Ver Todos los Emotes</button>
+        </div>
+
+      </div>
+
+      <!-- PIE DEL HUB -->
+      <div class="hub-footer">
+        <div class="footer-left">
+          <span class="indicator-dot active"></span>
+          <span><b>8 emotes por fila</b> • Toca un emote para equiparlo • Clic en la ⭐ para favoritos</span>
+        </div>
+        <div class="footer-right">
+          <button id="btn-footer-script" class="btn-footer-link">
+            <span>📜 Ver Código Lua (Roblox)</span>
+          </button>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- MODAL DE SCRIPT ROBLOX (FE) -->
+  <div class="modal-backdrop" id="modal-script" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon">📜</span>
+          <div>
+            <h3>Script Lua para Roblox (FE Emotes Hub)</h3>
+            <p>Listo para usar en Roblox Studio o Executors (Solara, Wave, Delta, etc.)</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btn-close-modal">✕</button>
+      </div>
+
+      <div class="modal-instructions">
+        <div class="instruction-step">
+          <span class="step-num">1</span>
+          <span><b>Studio:</b> Pégalo en un <code>LocalScript</code> dentro de <code>StarterPlayerScripts</code> o <code>StarterGui</code>.</span>
+        </div>
+        <div class="instruction-step">
+          <span class="step-num">2</span>
+          <span><b>Executor:</b> Copia el código completo y ejecútalo en cualquier juego compatible.</span>
+        </div>
+      </div>
+
+      <div class="modal-code-wrap">
+        <div class="code-actions">
+          <span class="code-lang">Luau / Roblox Script</span>
+          <div class="code-btns">
+            <button id="btn-copy-script" class="btn-copy">📋 Copiar Script</button>
+            <a href="EmotesHub.lua" download="EmotesHub.lua" class="btn-download">💾 Descargar .lua</a>
+          </div>
+        </div>
+        <pre><code id="lua-code-display">Cargando script...</code></pre>
+      </div>
+
+      <div class="modal-footer">
+        <span class="modal-note">✨ 100% FE Compatible con réplica de animaciones de clientes vía Animator</span>
+        <button class="btn-accent" id="btn-modal-done">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- SCRIPTS -->
+  <script src="avatar.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
