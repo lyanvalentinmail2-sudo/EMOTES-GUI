@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SAIKI EMOTES — Roblox UGC Emote Catalog</title>
+<meta name="description" content="SAIKI EMOTES — a catalog of real Roblox UGC emotes: search, browse, favorite and copy real marketplace emote asset IDs." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2300a2ff'/%3E%3Ccircle cx='26' cy='15' r='7' fill='%23fff'/%3E%3Cpath d='M18 28c4-4 12-4 16 0l6 8-6 4-4-5-1 12-8 12-7-5 7-11-6-7z' fill='%23fff'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="backdrop" aria-hidden="true">
+  <div class="glow glow-a"></div>
+  <div class="glow glow-b"></div>
+  <div class="glow glow-c"></div>
+</div>
+
+<!-- ══════════════════ MAIN WINDOW ══════════════════ -->
+<main id="guiWindow" class="gui-window" role="application" aria-label="SAIKI EMOTES — Roblox UGC emote catalog">
+
+  <!-- Header (drag handle) -->
+  <header id="guiHeader" class="gui-header">
+    <div class="header-left">
+      <div class="app-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="30" height="30">
+          <circle cx="26" cy="14" r="7" fill="currentColor"/>
+          <path d="M18 27c4-4.5 12-4.5 16 0l6.5 8.5-6.5 4-4.2-5.2-1 12.2-8 12.5-7.2-5.2 7.2-11.3-6.3-7.3z" fill="currentColor"/>
+          <rect x="38" y="44" width="12" height="4.6" rx="2.3" transform="rotate(-38 38 44)" fill="currentColor" opacity=".55"/>
+        </svg>
+      </div>
+      <div class="titles">
+        <h1>SAIKI EMOTES</h1>
+        <p>ROBLOX EMOTE CATALOG</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="btnTheme" class="round-btn" type="button" title="Toggle light / dark theme" aria-label="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="4.4" fill="currentColor"/><g stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><line x1="12" y1="2.2" x2="12" y2="4.6"/><line x1="12" y1="19.4" x2="12" y2="21.8"/><line x1="2.2" y1="12" x2="4.6" y2="12"/><line x1="19.4" y1="12" x2="21.8" y2="12"/><line x1="5.1" y1="5.1" x2="6.8" y2="6.8"/><line x1="17.2" y1="17.2" x2="18.9" y2="18.9"/><line x1="5.1" y1="18.9" x2="6.8" y2="17.2"/><line x1="17.2" y1="6.8" x2="18.9" y2="5.1"/></g></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18"><path d="M20.6 14.2A8.8 8.8 0 0 1 9.8 3.4a.7.7 0 0 0-.9-.9 9.8 9.8 0 1 0 12.6 12.6.7.7 0 0 0-.9-.9z" fill="currentColor"/></svg>
+      </button>
+      <button id="btnLock" class="round-btn" type="button" title="Lock interface position" aria-label="Lock interface position" aria-pressed="false">
+        <svg class="icon-unlocked" viewBox="0 0 24 24" width="18" height="18"><path d="M7 10V8a5 5 0 0 1 9.6-1.9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="4.5" y="10" width="15" height="10.5" rx="2.4" fill="currentColor"/></svg>
+        <svg class="icon-locked" viewBox="0 0 24 24" width="18" height="18"><path d="M8 10V8a4 4 0 0 1 8 0v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="4.5" y="10" width="15" height="10.5" rx="2.4" fill="currentColor"/><circle cx="12" cy="15.4" r="1.6" fill="var(--panel-bg)"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Search row -->
+  <div class="search-row">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2"/><line x1="15.4" y1="15.4" x2="21" y2="21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      <input id="searchInput" type="search" autocomplete="off" spellcheck="false"
+             placeholder="Search all Roblox emotes..." aria-label="Search all Roblox emotes" />
+      <span id="searchSpinner" class="spinner" hidden></span>
+      <button id="btnClearSearch" class="clear-btn" type="button" title="Clear search" aria-label="Clear search" hidden>✕</button>
+    </div>
+    <button id="sourceChip" class="source-chip" type="button" title="Data source status">
+      <span class="dot"></span><span id="sourceLabel">Starting…</span>
+    </button>
+  </div>
+
+  <!-- Grid area (cards / settings / empty state) -->
+  <section id="contentArea" class="content-area">
+    <div id="grid" class="emote-grid" aria-live="polite"></div>
+    <div id="emptyState" class="empty-state" hidden></div>
+    <div id="settingsView" class="settings-view" hidden></div>
+  </section>
+
+  <!-- Pagination -->
+  <footer id="paginationRow" class="pagination-row">
+    <span id="pageInfo" class="page-info">—</span>
+    <div class="pager">
+      <button id="btnPrevPage" class="page-btn nav" type="button" title="Previous page" aria-label="Previous page">‹</button>
+      <div id="pageNumbers" class="page-numbers" role="tablist" aria-label="Pages"></div>
+      <button id="btnNextPage" class="page-btn nav" type="button" title="Next page" aria-label="Next page">›</button>
+    </div>
+  </footer>
+
+  <!-- Bottom bar -->
+  <nav class="bottom-bar" aria-label="Catalog sections">
+    <button id="tabEmotes" class="bar-btn active" type="button">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="3" y="3" width="7.4" height="7.4" rx="1.8" fill="currentColor"/><rect x="13.6" y="3" width="7.4" height="7.4" rx="1.8" fill="currentColor"/><rect x="3" y="13.6" width="7.4" height="7.4" rx="1.8" fill="currentColor"/><rect x="13.6" y="13.6" width="7.4" height="7.4" rx="1.8" fill="currentColor"/></svg>
+      EMOTES
+    </button>
+    <button id="tabFavorites" class="bar-btn" type="button">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 2.6l2.8 5.9 6.5.9-4.7 4.5 1.2 6.4L12 17.2l-5.8 3.1 1.2-6.4L2.7 9.4l6.5-.9z" fill="currentColor"/></svg>
+      FAVORITES <span id="favCount" class="count-pill">0</span>
+    </button>
+    <button id="btnCopyId" class="bar-btn" type="button" title="Copy the asset ID of the selected emote">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="8.5" y="8.5" width="12" height="12" rx="2.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5.5 15.5h-1a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+      COPY
+    </button>
+    <button id="tabSettings" class="bar-btn" type="button">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="currentColor"/><path d="M12 2.4l1.2 3 3-1 1 3 3.1.9-.9 3.1 2 2.6-2.6 2-.1 3.2-3.1.6-1.8 2.5-2.8-1.6-2.8 1.6-1.8-2.5-3.1-.6.1-3.2-2.6-2 2-2.6-.9-3.1 3.1-.9 1-3 3 1z" fill="none" stroke="currentColor" stroke-width="1.4" opacity="0"/></path><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4.2v2M12 17.8v2M4.2 12h2M17.8 12h2M6.5 6.5l1.4 1.4M16.1 16.1l1.4 1.4M6.5 17.5l1.4-1.4M16.1 7.9l1.4-1.4"/></g></svg>
+      SETTINGS
+    </button>
+  </nav>
+</main>
+
+<!-- ══════════════════ DETAIL MODAL ══════════════════ -->
+<div id="modalOverlay" class="modal-overlay" hidden>
+  <div id="modalCard" class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalName">
+    <button id="modalClose" class="modal-close" type="button" title="Close" aria-label="Close">✕</button>
+    <div class="modal-left">
+      <div class="modal-thumb-wrap">
+        <img id="modalThumb" alt="Emote thumbnail" />
+        <div id="modalThumbFallback" class="thumb-fallback big">
+          <svg viewBox="0 0 24 24" width="46" height="46" aria-hidden="true"><circle cx="12" cy="7" r="3.4" fill="currentColor" opacity=".5"/><path d="M8.6 12.4c2-2.2 5-2.2 6.8 0l2.6 3.4-2.6 1.6-1.7-2.1-.4 4.9-3.2 5-2.9-2.1 2.9-4.5-2.5-3z" fill="currentColor" opacity=".5"/></svg>
+          <span>Thumbnail unavailable</span>
+        </div>
+      </div>
+      <div class="modal-actions-col">
+        <button id="modalCopyId" class="btn solid" type="button">Copy asset ID</button>
+        <button id="modalCopyLua" class="btn" type="button">Copy Luau usage</button>
+        <a id="modalRobloxLink" class="btn" target="_blank" rel="noopener noreferrer">View on Roblox ↗</a>
+      </div>
+    </div>
+    <div class="modal-right">
+      <div class="modal-title-row">
+        <h2 id="modalName">—</h2>
+        <button id="modalFav" class="star-btn big" type="button" title="Add to favorites" aria-label="Toggle favorite">
+          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 2.6l2.8 5.9 6.5.9-4.7 4.5 1.2 6.4L12 17.2l-5.8 3.1 1.2-6.4L2.7 9.4l6.5-.9z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div id="modalMeta" class="modal-meta"></div>
+      <div id="modalStatus" class="modal-status"></div>
+      <p id="modalDescription" class="modal-description"></p>
+      <div class="asset-id-box">
+        <span class="label">ASSET ID</span>
+        <code id="modalAssetId">—</code>
+        <button id="modalCopyId2" class="mini-btn" type="button">copy</button>
+      </div>
+      <p class="modal-note">
+        <strong>Animation:</strong> Roblox animations can’t be played inside a web browser.
+        Open the item on Roblox to preview it with your avatar, or use the Luau snippet inside an experience that allows it.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Toasts -->
+<div id="toastHost" class="toast-host" aria-live="polite"></div>
+
+<!-- Hidden file input for import -->
+<input id="importFile" type="file" accept="application/json" hidden />
+
+<script src="data/emotes.js"></script>
+<script src="js/roblox-api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
